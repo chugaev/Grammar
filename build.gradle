@@ -1,0 +1,31 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'Main'
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+run{
+    standardInput = System.in
+    standardOutput = System.out
+}
+dependencies {
+  compile 'junit:junit:4.12'
+}
+subprojects {
+    //Put instructions for each sub project
+    apply plugin: "java"
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version: '4.+'
+    }
+}
+test {
+    testLogging {
+        showStandardStreams = true
+    }
+}
