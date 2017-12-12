@@ -59,8 +59,8 @@ public class Solver {
         if (fileout != null) {
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
-                    if (matrix[i][j].contains("S")) {
-                        pw.print(i + ",S," + j + "\n");
+                    for (String str : matrix[i][j]) {
+                        pw.print(i + "," + str + "," + j + "\n");
                     }
                 }
             }
