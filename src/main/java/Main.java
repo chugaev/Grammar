@@ -1,13 +1,15 @@
 import java.io.FileNotFoundException;
-import java.util.List;
 import java.util.Scanner;
 
 
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
-        Solver solver = new Solver();
+        TCSolver tcSolver = new TCSolver();
+        GLRsolver glRsolver = new GLRsolver();
         Scanner sc = new Scanner(System.in);
         String s = sc.nextLine();
+        int mode = sc.nextInt();
+        System.out.println(s);
         String grammar = null;
         String graph = null;
         String out = "";
@@ -19,7 +21,13 @@ public class Main {
             grammar = s.split(" ")[0].trim();
             graph = s.split(" ")[1].trim();
         }
-        solver.solve(grammar, graph, out);
+        if (mode == 1) {
+            System.out.println(tcSolver.solve(grammar, graph, out));
+        } else if (mode == 2) {
+            System.out.println(glRsolver.solve(grammar, graph, out));
+        } else if (mode == 3) {
+
+        }
     }
 }
 
