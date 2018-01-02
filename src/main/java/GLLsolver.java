@@ -1,21 +1,20 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GLLsolver {
     Map<String, Set<String>[][]> RFA;
     Set<String>[][] graph;
-    boolean[] startAns;
-    Map<String, Boolean> nontermAns;
-    boolean[] finalAns;
+    Set<String> ans;
+    Set<String> used;
     int k = 0;
     int solve(String fileNameGrammar, String fileNameGraph, String fileout) throws FileNotFoundException {
         RFA = parseGrammar(fileNameGrammar);
         graph = parseGraph(fileNameGraph);
-        startAns = new boolean[graph.length];
-        finalAns = new boolean[graph.length];
-        nontermAns = new HashMap<>();
+        ans = new TreeSet<>();
+        used = new TreeSet<>();
 //        System.out.println();
 //        for (String key : RFA.keySet()) {
 //            Set<String>[][] module = RFA.get(key);
@@ -26,7 +25,7 @@ public class GLLsolver {
 //                System.out.println();
 //            }
 //        }
-//
+
 //        for (int i = 0; i < graph.length; i++) {
 //            for (int j = 0; j < graph.length; j++) {
 //                System.out.print(graph[i][j]);
@@ -35,94 +34,104 @@ public class GLLsolver {
 //        }
 //        System.out.println(RFA.get("S").length);
 //        System.out.println(graph.length);
-        rec(0, 0, "S", 0);
 //        for (int i = 0; i < graph.length; i++) {
 //            rec(i, i, "S", 0);
+//            used.clear();
 //        }
-        for (int i = 0; i < startAns.length; i++) {
-            for (String string : nontermAns.keySet()) {
-                for (int j = 0; j < finalAns.length; j++) {
-                    if (startAns[i] && nontermAns.get(string) && finalAns[j]) {
-                        k++;
-                        System.out.println(i + " " + string + " " + j);
-                    }
-                }
+        rec(0, 0, "S", 0);
+//        System.out.println(ans.size());
+        ArrayList<String> array = new ArrayList<>();
+        for (String string : ans) {
+//            System.out.println(string);
+            array.add(string);
+        }
+        PrintWriter pw = null;
+        if (fileout != null && !fileout.equals("")) {
+            pw = new PrintWriter(new File(fileout));
+        }
+        Collections.sort(array);
+//        System.out.println(array.size());
+        int k = 0;
+        for (String string : array) {
+            k++;
+            if (fileout != null && !fileout.equals("")) {
+                pw.print(string + '\n');
+            } else if (fileout.equals("")){
+                System.out.println(string);
             }
         }
-        System.out.println(k);
-
-//        Queue<Configuration> configurations = new PriorityQueue<>();
-//        Set<Configuration> popped = new TreeSet<>();
-//
-//        configurations.add(new Configuration(0, new RFAPosition("S", 0), new GSSNode(0, "S")));
-//label1: while (!configurations.isEmpty()) {
-//            Configuration conf = configurations.poll();
-//            if (popped.contains(conf)) {
-//                continue;
-//            }
-//            popped.add(conf);
-//            int graphPosition = conf.position;
-//            RFAPosition rfaPosition = conf.rfaPosition;
-//            GSSNode gssNode = conf.node;
-//            Set<String>[][] module = RFA.get(rfaPosition.nonterm);
-//            for (int j = 0; j < module.length; j++) {
-//                Set<String> edges = module[rfaPosition.position][j];
-//                for (String edge : edges) {
-//                    if (j == module.length - 1) { // final state in module
-//                        break label1;
-//                    } else if (isTerminal(RFA, edge)) { // terminal
-//
-//                    } else if (!isTerminal(RFA, edge)) { // nonterminal
-//
-//                    }
-//                }
-//            }
-//        }
-        return 0;
+//        System.out.println(k);
+//        System.out.println(ans.size());
+        if (pw != null) {
+            pw.close();
+        }
+        return ans.size();
     }
 
-    int rec(int start, int position, String nonterm, int modulePosition) {
-        int oldPosition = position;
-        Set<String>[][] module = RFA.get(nonterm);
-        if (modulePosition == module.length - 1) {
-//            System.out.println("answer: " + start + " " + nonterm + " " + position);
-            startAns[start] = true;
-            finalAns[position] = true;
-            if (!nontermAns.containsKey(nonterm)) {
-                nontermAns.put(nonterm, true);
-            }
-            return position;
-        }
+    ArrayList<Integer> rec(int start, int position, String nonterm, int modulePosition) {
 //        System.out.println(start + " " + position + " " + nonterm + " " + modulePosition);
-        for (int i = 0; i < module.length; i++) {
-            for (String edgeModule : module[modulePosition][i]) {
-                if (isTerminal(edgeModule)) {
-                    for (int j = 0; j < graph.length; j++) {
-                        for (String edgeGraph : graph[oldPosition][j]) {
-                            if (edgeGraph.equals(edgeModule)) {
-                                int t = rec(start, j, nonterm, i);
-                                if (t != -1) {
-                                    position = t;
-                                }
+        ArrayList<CommonPositionCall> queue = new ArrayList<>();
+        ArrayList<Integer> positions = new ArrayList<>();
+        ArrayList<Integer> forReturnPositions = new ArrayList<>();
+        find(position, nonterm, modulePosition, queue);
+        for (CommonPositionCall call : queue) {
+//            System.out.println(call.position + " " + call.module + " " + call.modulePosition);
+            if (call.module == null) {
+//                System.out.println("Answer1: " + start + " " + nonterm + " " + call.position);
+                ans.add(start + "," + nonterm + "," + call.position);
+                forReturnPositions.add(call.position);
+            } else {
+                String next = call.position + "#" + call.position + "#" + call.module;
+                if (!used.contains(next)) {
+                    used.add(next);
+                    positions.addAll(rec(call.position, call.position, call.module, 0));
+                }
+                for (Integer i : positions) {
+                    ArrayList<CommonPositionCall> q = new ArrayList<>();
+                    find(i, nonterm, call.finishModulePosition, q);
+
+                    for (CommonPositionCall positionCall : q) {
+                        if (positionCall.module == null) {
+                            ans.add(start + "," + nonterm + "," + positionCall.position);
+                            forReturnPositions.add(positionCall.position);
+                        } else {
+                            String next2 = call.position + "#" + call.position + "#" + call.module;
+                            if (!used.contains(next2)) {
+                                used.add(next2);
+                                positions.addAll(rec(i, i,  positionCall.module, positionCall.modulePosition));
                             }
                         }
                     }
                 }
+
             }
         }
+        return forReturnPositions;
+    }
+
+    void find(int position, String nonterm, int modulePosition, ArrayList<CommonPositionCall> queue) {
+        Set<String>[][] module = RFA.get(nonterm);
         for (int i = 0; i < module.length; i++) {
             for (String edgeModule : module[modulePosition][i]) {
-                if (!isTerminal(edgeModule)) {
-                    rec(position, oldPosition, edgeModule, 0);
-//                    if (pos != -1) {
-//                        System.out.println("asdasdad");
-//                        rec(oldPosition, pos, edgeModule, i);
-//                    }
+                if (isTerminal(edgeModule)) {
+                    for (int j = 0; j < graph.length; j++) {
+                        for (String edgeGraph : graph[position][j]) {
+                            if (edgeGraph.equals(edgeModule)) {
+                                if (module.length - 1 == i) {
+                                    queue.add(new CommonPositionCall(j, null, i, -1));// -1 ?????
+                                } else {
+                                    find(j, nonterm, i, queue);
+                                }
+                            }
+                        }
+                    }
+                } else if (!isTerminal(edgeModule)) {
+                    queue.add(new CommonPositionCall(position, edgeModule, modulePosition, i));
                 }
             }
         }
-        return -1;
     }
+
 
     Set<String>[][] parseGraph(String filename) throws FileNotFoundException {
         Scanner sc = new Scanner(new File(filename));
@@ -176,6 +185,7 @@ public class GLLsolver {
 //                System.out.print(s + " ");
             }
             int size = arrayList.stream().mapToInt(w -> w.length()).sum() - arrayList.size() + 2;
+//            System.out.println(size);
             Set<String>[][] module = new TreeSet[size][size];
             for (int i = 0; i < module.length; i++) {
                 for (int j = 0; j < module.length; j++) {
@@ -184,11 +194,14 @@ public class GLLsolver {
             }
             int i = 0;
             for (String right : arrayList) {
+                if (right.length() == 1) {
+                    module[0][size - 1].add(right);
+                    continue;
+                }
                 for (int j = 0; j < right.length(); j++) {
                     if (j == right.length() - 1) {
                         module[i][size - 1].add(String.valueOf(right.charAt(j)));
                     } else {
-
                         if (j == 0) {
                             module[0][i + 1].add(String.valueOf(right.charAt(j)));
                         } else {
@@ -208,6 +221,31 @@ public class GLLsolver {
     }
 }
 
+class Triple {
+    int a;
+    int b;
+    int c;
+
+    public Triple(int a, int b, int c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+}
+
+class CommonPositionCall {
+    int position;
+    String module;
+    int modulePosition;
+    int finishModulePosition;
+
+    public CommonPositionCall(int position, String module, int modulePosition, int finishModulePosition) {
+        this.position = position;
+        this.module = module;
+        this.modulePosition = modulePosition;
+        this.finishModulePosition = finishModulePosition;
+    }
+}
 class Configuration {
     int position;
     RFAPosition rfaPosition;
