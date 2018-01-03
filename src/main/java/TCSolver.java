@@ -54,7 +54,7 @@ public class TCSolver {
         }
         PrintWriter pw = null;
         if (fileout!= null && fileout.equals("")) {
-            pw = new PrintWriter(System.out, true);
+//            pw = new PrintWriter(System.out, true);
         } else if (fileout != null) {
             pw = new PrintWriter(new File(fileout));
         }
@@ -63,7 +63,11 @@ public class TCSolver {
                 for (int j = 0; j < size; j++) {
                     if (matrix[i][j] != null) {
                         for (String str : matrix[i][j]) {
-                            pw.print(i + "," + str + "," + j + "\n");
+                            if (fileout.equals("")) {
+                                System.out.println(i + "," + str + "," + j);
+                            } else {
+                                pw.print(i + "," + str + "," + j + "\n");
+                            }
                         }
                     }
                 }
