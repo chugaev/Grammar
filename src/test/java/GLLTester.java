@@ -7,13 +7,13 @@ import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 
-class GLLTester {
+public class GLLTester {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_GREEN = "\u001B[32m";
     @Test
     public void test() throws FileNotFoundException {
-        GLLsolver gllsolver = new GLLsolver();
+        GLLSolver gllsolver = new GLLSolver();
         Scanner sc = new Scanner(new File("data" + File.separator +"input_for_test"));
         String[] fileNames = new String[11];
         String[] fileNameGrammars = new String[2];
@@ -44,7 +44,7 @@ class GLLTester {
                 } else {
                     System.out.println(ANSI_RED + " [FAIL]" + ANSI_RESET);
                 }
-//                assertEquals(num, answer);
+                assertEquals(num, answer);
             }
         }
     }
