@@ -1,9 +1,9 @@
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
+        GLLSolver gllSolver = new GLLSolver();
         TCSolver tcSolver = new TCSolver();
         GLRsolver glRsolver = new GLRsolver();
         Scanner sc = new Scanner(System.in);
@@ -21,13 +21,15 @@ public class Main {
             grammar = s.split(" ")[0].trim();
             graph = s.split(" ")[1].trim();
         }
+        int k = 0;
         if (mode == 1) {
-            System.out.println(tcSolver.solve(grammar, graph, out));
+            k = tcSolver.solve(grammar, graph, out);
         } else if (mode == 2) {
-            System.out.println(glRsolver.solve(grammar, graph, out));
+            k = gllSolver.solve(grammar, graph, out);
         } else if (mode == 3) {
-
+            k = glRsolver.solve(grammar, graph, out);
         }
+        System.out.println(k);
     }
 }
 
